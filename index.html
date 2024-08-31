@@ -3,13 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Button with Function</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>QR Scanner</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-<div class="center-container">
-<button class="custom-button" onclick="myFunc()">Click Me</button>
-<script src="scripts.js"></script>
-</div>
+    <script>
+        function startQrScanner() {
+            Telegram.WebApp.showScanQrPopup({}, function(result) {
+                if (result && result.data) {
+                    sendMessageToUser(result.data);
+                } else {
+                    console.error('Ошибка сканирования');
+                }
+            });
+        }
+
+        function sendMessageToUser(text) {
+            fetch(`https://api.telegram.org/bot<YOUR_BOT_TOKEN>/sendMessage`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    chat_id: Telegram.WebApp.initDataUnsafe.user.id,
+                    text: text
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.ok) {
+                    Telegram.WebApp.close();
+                } else {
+                    console.error('Ошибка отправки сообщения:', data.description);
+                }
+            })
+            .catch(error => console.error('Ошибка сети:', error));
+        }
+
+        Telegram.WebApp.ready(function() {
+            startQrScanner();
+        });
+    </script>
 </body>
 </html>
